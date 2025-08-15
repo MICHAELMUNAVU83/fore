@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Property Analysis Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 15px;
+      }
+
+      .executive-summary {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .summary-text {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 4px solid #667eea;
+      }
+
+      .primary-intent {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+      }
+
+      .primary-intent h2 {
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .card h3 {
+        color: #764ba2;
+        margin-bottom: 20px;
+        font-size: 1.4em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+        margin-bottom: 20px;
+      }
+
+      .score-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .score-item {
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        transition: transform 0.3s ease;
+      }
+
+      .score-item:hover {
+        transform: scale(1.05);
+      }
+
+      .score-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #764ba2;
+      }
+
+      .score-label {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      .signals-section {
+        grid-column: 1 / -1;
+      }
+
+      .source-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .tab-button {
+        background: rgba(102, 126, 234, 0.1);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+
+      .tab-button.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .signal-item {
+        background: rgba(255, 255, 255, 0.5);
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+      }
+
+      .signal-item:hover {
+        background: rgba(255, 255, 255, 0.8);
+        transform: translateX(5px);
+      }
+
+      .signal-seller {
+        border-left-color: #ff6b6b;
+      }
+      .signal-buyer {
+        border-left-color: #4ecdc4;
+      }
+      .signal-lessee {
+        border-left-color: #45b7d1;
+      }
+      .signal-lessor {
+        border-left-color: #96ceb4;
+      }
+      .signal-risk {
+        border-left-color: #feca57;
+      }
+      .signal-contextual {
+        border-left-color: #a55eea;
+      }
+
+      .signal-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .signal-name {
+        font-weight: bold;
+        flex-grow: 1;
+      }
+
+      .signal-type {
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        font-weight: 600;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      .signal-score {
+        background: #764ba2;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: bold;
+      }
+
+      .signal-explanation {
+        font-size: 0.9em;
+        color: #666;
+        margin: 5px 0;
+      }
+
+      .signal-evidence {
+        background: rgba(0, 0, 0, 0.05);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.85em;
+        font-family: "Courier New", monospace;
+        color: #555;
+      }
+
+      @media (max-width: 768px) {
+        .main-grid,
+        .executive-summary {
+          grid-template-columns: 1fr;
+        }
+
+        .header h1 {
+          font-size: 2em;
+        }
+
+        .container {
+          padding: 10px;
+        }
+      }
+
+      .metric-badge {
+        display: inline-block;
+        background: rgba(102, 126, 234, 0.1);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        margin: 2px;
+        color: #764ba2;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🏢 Property Analysis Dashboard</h1>
+        <div class="executive-summary">
+          <div class="summary-text">
+            <h3>📊 Executive Summary</h3>
+            <p>
+              <strong>Recommended Action:</strong> Proceed with targeted due
+              diligence and risk assessment before pursuing any acquisition or
+              investment.
+            </p>
+            <br />
+            <p>
+              The data indicates a strong rental market with high lessee intent
+              and significant market appreciation, evidenced by a 50% increase
+              in property value and high equity. However, elevated risk signals
+              from mechanic liens and non-owner occupancy suggest caution,
+              highlighting potential financial and legal vulnerabilities.
+            </p>
+          </div>
+          <div class="primary-intent">
+            <h2>🎯 Primary Intent</h2>
+            <div class="score-number">SELLER</div>
+            <p>Score: 11 across 6 signals</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-grid">
+        <div class="card">
+          <h3>📈 Intent Category Scores</h3>
+          <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+          </div>
+          <div class="score-grid">
+            <div class="score-item">
+              <div class="score-number">11</div>
+              <div class="score-label">Seller Intent</div>
+              <div class="metric-badge">6 signals</div>
+            </div>
+            <div class="score-item">
+              <div class="score-number">11</div>
+              <div class="score-label">Lessee Intent</div>
+              <div class="metric-badge">5 signals</div>
+            </div>
+            <div class="score-item">
+              <div class="score-number">19</div>
+              <div class="score-label">Risk</div>
+              <div class="metric-badge">5 signals</div>
+            </div>
+            <div class="score-item">
+              <div class="score-number">25</div>
+              <div class="score-label">Contextual</div>
+              <div class="metric-badge">5 signals</div>
+            </div>
+            <div class="score-item">
+              <div class="score-number">3</div>
+              <div class="score-label">Buyer Intent</div>
+              <div class="metric-badge">5 signals</div>
+            </div>
+            <div class="score-item">
+              <div class="score-number">8</div>
+              <div class="score-label">Lessor Intent</div>
+              <div class="metric-badge">2 signals</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>🎂 Source Analysis Overview</h3>
+          <div class="chart-container">
+            <canvas id="sourceChart"></canvas>
+          </div>
+          <div class="score-grid">
+            <div class="score-item">
+              <div class="score-number">🏠</div>
+              <div class="score-label">Property</div>
+              <div class="metric-badge">9 signals analyzed</div>
+            </div>
+            <div class="score-item">
+              <div class="score-number">🏢</div>
+              <div class="score-label">Entity</div>
+              <div class="metric-badge">12 signals analyzed</div>
+            </div>
+            <div class="score-item">
+              <div class="score-number">👤</div>
+              <div class="score-label">Human</div>
+              <div class="metric-badge">7 signals analyzed</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card signals-section">
+          <h3>🔍 Detailed Signal Analysis</h3>
+          <div class="source-tabs">
+            <button class="tab-button active" onclick="showTab('property')">
+              🏠 Property
+            </button>
+            <button class="tab-button" onclick="showTab('entity')">
+              🏢 Entity
+            </button>
+            <button class="tab-button" onclick="showTab('human')">
+              👤 Human
+            </button>
+          </div>
+
+          <div id="property-tab" class="tab-content active">
+            <div id="property-signals"></div>
+          </div>
+
+          <div id="entity-tab" class="tab-content">
+            <div id="entity-signals"></div>
+          </div>
+
+          <div id="human-tab" class="tab-content">
+            <div id="human-signals"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Data from the analysis
+      const analysisData = {
+        property: {
+          mechanic_liens: {
+            type: "risk",
+            score: 8,
+            explanation:
+              "There are multiple mechanic's liens recorded within the last two years, indicating high risk.",
+            evidence:
+              "Liens recorded on 4-11-2018, 11-05-2020, 4-24-2023, 5-04-2023, and 6-11-2025, totaling more than two recent liens.",
+          },
+          court_orders_partition_probate: {
+            type: "seller_intent",
+            score: 0,
+            explanation:
+              "No relevant court orders related to partition or probate are present in the data.",
+            evidence: "order_reasons => [] (empty list)",
+          },
+          address_mismatch_out_of_state: {
+            type: "lessor_intent",
+            score: 0,
+            explanation:
+              "The mailing address and property address are in the same state, indicating no out-of-state mailing address mismatch.",
+            evidence:
+              "mailing_address: '4640 E COTTON GIN LOOP, PHOENIX, AZ 85040'",
+          },
+          market_appreciation_and_equity: {
+            type: "seller_intent",
+            score: 9,
+            explanation:
+              "The most recent 'FullCashValue' ($2,526,400) is over 50% higher than the oldest ($1,672,700), indicating strong market appreciation and high equity.",
+            evidence:
+              "FullCashValue increased from 1,672,700 in 2021 to 2,526,400 in 2026, a rise of approximately 51%.",
+          },
+          non_owner_occupied: {
+            type: "lessor_intent",
+            score: 8,
+            explanation:
+              "The 'non_owner_occupied_flag' is true, indicating an official record of non-owner occupancy, which aligns with a high rental property signal.",
+            evidence: "non_owner_occupied_flag => true",
+          },
+          tax_delinquency: {
+            type: "risk",
+            score: 0,
+            explanation:
+              "The property has no history of tax delinquency, indicating no current financial distress related to taxes.",
+            evidence: "consecutive_delinquent_years: 0",
+          },
+          declining_property_value: {
+            type: "risk",
+            score: 7,
+            explanation:
+              "The property has declined more than 15% from its peak, indicating a significant decline that warrants a high score.",
+            evidence: "current_vs_peak_decline_percent => -16.56",
+          },
+        },
+        entity: {
+          llc_dissolution: {
+            type: "seller_intent",
+            score: 0,
+            explanation:
+              "The entity status is 'Active', indicating it is currently operational and not dissolved.",
+            evidence: "entity_status => 'Active'",
+          },
+          owner_engagement_insights: {
+            type: "seller_intent",
+            score: 5,
+            explanation:
+              "The data indicates three key pain points, suggesting a medium level of owner engagement insights.",
+            evidence:
+              'key_pain_points => ["Missing agent information", "Unknown entity status", "Potential administrative noncompliance"]',
+          },
+          recent_llc_formation: {
+            type: "buyer_intent",
+            score: 2,
+            explanation:
+              "The entity is classified as 'Established' with formation over 6 years ago.",
+            evidence:
+              "formation_category: 'Established', formation_age_days: 6019",
+          },
+          missing_agent_info: {
+            type: "risk",
+            score: 4,
+            explanation:
+              "Only the agent's address information is missing, indicating a partial lack of statutory agent details.",
+            evidence: "address is empty, name is provided",
+          },
+          market_timing: {
+            type: "contextual",
+            score: 5,
+            explanation:
+              "Owner motivation is medium with no immediate distress signals, indicating neutral market timing conditions.",
+            evidence: "owner_motivation_level => 'Medium'",
+          },
+          property_condition: {
+            type: "contextual",
+            score: 4,
+            explanation:
+              "The property has a 'C' improvement quality grade and is over 10 years old, indicating a fair condition.",
+            evidence: "ImprovementQualityGrade: 'C', ConstructionYear: '2009'",
+          },
+        },
+        human: {
+          owner_engagement_insights: {
+            type: "seller_intent",
+            score: 2,
+            explanation:
+              "The data shows some public mentions of Hudson's Bay Company, but no explicit statements about downsizing or selling.",
+            evidence: "key_pain_points include 'Missing agent information'",
+          },
+          owner_engagement_activity: {
+            type: "contextual",
+            score: 3,
+            explanation:
+              "The owner engagement activity shows limited social media presence across only 2 platforms, indicating medium engagement.",
+            evidence: "Liz Rodbell has social media activity on 2 platforms",
+          },
+          team_growth_acquisitions: {
+            type: "buyer_intent",
+            score: 1,
+            explanation:
+              "The team analysis shows no real estate or acquisition-focused roles, indicating minimal immediate buy-side activity.",
+            evidence: "real_estate_focused_roles => 0",
+          },
+          team_expansion: {
+            type: "lessee_intent",
+            score: 4,
+            explanation:
+              "The 'Low Positive' growth indicates some expansion but not enough to suggest a strong future leasing need.",
+            evidence: "Low Positive",
+          },
+          owner_pain_points: {
+            type: "contextual",
+            score: 7,
+            explanation:
+              "Multiple operational pain points suggest increased likelihood of transaction activity.",
+            evidence:
+              "Missing agent information, Potential administrative or compliance issues",
+          },
+          owner_influence_level: {
+            type: "contextual",
+            score: 6,
+            explanation:
+              "The team includes a top-level decision-maker (CEO) and a founder, indicating high influence and decision-making capability.",
+            evidence:
+              "Liz Rodbell, CEO of Hudson's Bay, and Sander Gerber, Founder of Hudson Bay Capital.",
+          },
+        },
+      };
+
+      // Create charts
+      function createCategoryChart() {
+        const ctx = document.getElementById("categoryChart").getContext("2d");
+        new Chart(ctx, {
+          type: "radar",
+          data: {
+            labels: [
+              "Seller Intent",
+              "Buyer Intent",
+              "Lessee Intent",
+              "Lessor Intent",
+              "Risk",
+              "Contextual",
+            ],
+            datasets: [
+              {
+                label: "Total Scores",
+                data: [11, 3, 11, 8, 19, 25],
+                borderColor: "rgba(102, 126, 234, 1)",
+                backgroundColor: "rgba(102, 126, 234, 0.2)",
+                pointBackgroundColor: "rgba(102, 126, 234, 1)",
+                pointBorderColor: "#fff",
+                pointHoverBackgroundColor: "#fff",
+                pointHoverBorderColor: "rgba(102, 126, 234, 1)",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                beginAtZero: true,
+                max: 30,
+              },
+            },
+          },
+        });
+      }
+
+      function createSourceChart() {
+        const ctx = document.getElementById("sourceChart").getContext("2d");
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["Property", "Entity", "Human"],
+            datasets: [
+              {
+                data: [9, 12, 7],
+                backgroundColor: [
+                  "rgba(255, 107, 107, 0.8)",
+                  "rgba(78, 205, 196, 0.8)",
+                  "rgba(69, 183, 209, 0.8)",
+                ],
+                borderWidth: 3,
+                borderColor: "#fff",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+          },
+        });
+      }
+
+      // Populate signal details
+      function populateSignals() {
+        ["property", "entity", "human"].forEach((source) => {
+          const container = document.getElementById(`${source}-signals`);
+          const signals = analysisData[source];
+
+          let html = "";
+          Object.entries(signals).forEach(([name, data]) => {
+            const typeClass = `signal-${data.type.replace("_", "-")}`;
+            const intentLabel = data.type.replace("_", " ").toUpperCase();
+            const intentEmoji =
+              {
+                "SELLER INTENT": "💰",
+                "BUYER INTENT": "🏪",
+                "LESSEE INTENT": "🏠",
+                "LESSOR INTENT": "🏢",
+                RISK: "⚠️",
+                CONTEXTUAL: "📊",
+              }[intentLabel] || "📋";
+
+            html += `
+                        <div class="signal-item ${typeClass}">
+                            <div class="signal-header">
+                                <span class="signal-name">${name
+                                  .replace(/_/g, " ")
+                                  .toUpperCase()}</span>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <span class="signal-type">${intentEmoji} ${intentLabel}</span>
+                                    <span class="signal-score">${
+                                      data.score
+                                    }/10</span>
+                                </div>
+                            </div>
+                            <div class="signal-explanation">${
+                              data.explanation
+                            }</div>
+                            <div class="signal-evidence"><strong>Evidence:</strong> ${
+                              data.evidence
+                            }</div>
+                        </div>
+                    `;
+          });
+          container.innerHTML = html;
+        });
+      }
+
+      // Tab switching
+      function showTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll(".tab-content").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+        document.querySelectorAll(".tab-button").forEach((button) => {
+          button.classList.remove("active");
+        });
+
+        // Show selected tab
+        document.getElementById(`${tabName}-tab`).classList.add("active");
+        event.target.classList.add("active");
+      }
+
+      // Initialize everything
+      document.addEventListener("DOMContentLoaded", function () {
+        createCategoryChart();
+        createSourceChart();
+        populateSignals();
+      });
+    </script>
+  </body>
+</html>
