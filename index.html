@@ -107,6 +107,97 @@
         position: relative;
         height: 300px;
         margin-bottom: 20px;
+        overflow: hidden;
+      }
+
+      .bullet-chart {
+        height: 280px;
+        padding: 10px;
+        overflow-y: auto;
+      }
+
+      .bullet-item {
+        margin-bottom: 20px;
+        position: relative;
+        clear: both;
+      }
+
+      .bullet-label {
+        font-size: 0.9em;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .bullet-score {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #764ba2;
+      }
+
+      .bullet-bar-container {
+        position: relative;
+        height: 20px;
+        background: #f0f0f0;
+        border-radius: 10px;
+        overflow: hidden;
+        width: 100%;
+        margin-top: 5px;
+      }
+
+      .bullet-background {
+        position: absolute;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          #e8f5e8 0%,
+          #fff3cd 60%,
+          #f8d7da 100%
+        );
+        width: 100%;
+        top: 0;
+        left: 0;
+      }
+
+      .bullet-target {
+        position: absolute;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        width: 2px;
+        z-index: 3;
+        top: 0;
+      }
+
+      .bullet-value {
+        position: absolute;
+        height: 100%;
+        border-radius: 10px;
+        z-index: 2;
+        transition: width 1s ease-in-out;
+        top: 0;
+        left: 0;
+      }
+
+      .intent-seller {
+        background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+      }
+      .intent-buyer {
+        background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+      }
+      .intent-lessee {
+        background: linear-gradient(90deg, #45b7d1, #96ceb4);
+      }
+      .intent-lessor {
+        background: linear-gradient(90deg, #96ceb4, #74b9ff);
+      }
+      .intent-risk {
+        background: linear-gradient(90deg, #feca57, #ff6348);
+      }
+      .intent-contextual {
+        background: linear-gradient(90deg, #a55eea, #764ba2);
       }
 
       .score-grid {
@@ -320,7 +411,97 @@
         <div class="card">
           <h3>📈 Intent Category Scores</h3>
           <div class="chart-container">
-            <canvas id="categoryChart"></canvas>
+            <div class="bullet-chart">
+              <div class="bullet-item">
+                <div class="bullet-label">
+                  <span>💰 Seller Intent</span>
+                  <span class="bullet-score">11/100</span>
+                </div>
+                <div class="bullet-bar-container">
+                  <div class="bullet-background"></div>
+                  <div class="bullet-target" style="left: 60%"></div>
+                  <div
+                    class="bullet-value intent-seller"
+                    style="width: 11%"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="bullet-item">
+                <div class="bullet-label">
+                  <span>🏪 Buyer Intent</span>
+                  <span class="bullet-score">3/100</span>
+                </div>
+                <div class="bullet-bar-container">
+                  <div class="bullet-background"></div>
+                  <div class="bullet-target" style="left: 60%"></div>
+                  <div
+                    class="bullet-value intent-buyer"
+                    style="width: 3%"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="bullet-item">
+                <div class="bullet-label">
+                  <span>🏠 Lessee Intent</span>
+                  <span class="bullet-score">11/100</span>
+                </div>
+                <div class="bullet-bar-container">
+                  <div class="bullet-background"></div>
+                  <div class="bullet-target" style="left: 60%"></div>
+                  <div
+                    class="bullet-value intent-lessee"
+                    style="width: 11%"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="bullet-item">
+                <div class="bullet-label">
+                  <span>🏢 Lessor Intent</span>
+                  <span class="bullet-score">8/100</span>
+                </div>
+                <div class="bullet-bar-container">
+                  <div class="bullet-background"></div>
+                  <div class="bullet-target" style="left: 60%"></div>
+                  <div
+                    class="bullet-value intent-lessor"
+                    style="width: 8%"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="bullet-item">
+                <div class="bullet-label">
+                  <span>⚠️ Risk</span>
+                  <span class="bullet-score">19/100</span>
+                </div>
+                <div class="bullet-bar-container">
+                  <div class="bullet-background"></div>
+                  <div class="bullet-target" style="left: 60%"></div>
+                  <div
+                    class="bullet-value intent-risk"
+                    style="width: 19%"
+                  ></div>
+                </div>
+              </div>
+
+              <div class="bullet-item">
+                <div class="bullet-label">
+                  <span>📊 Contextual</span>
+                  <span class="bullet-score">25/100</span>
+                </div>
+                <div class="bullet-bar-container">
+                  <div class="bullet-background"></div>
+                  <div class="bullet-target" style="left: 60%"></div>
+                  <div
+                    class="bullet-value intent-contextual"
+                    style="width: 25%"
+                  ></div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="score-grid">
             <div class="score-item">
@@ -560,46 +741,7 @@
         },
       };
 
-      // Create charts
-      function createCategoryChart() {
-        const ctx = document.getElementById("categoryChart").getContext("2d");
-        new Chart(ctx, {
-          type: "radar",
-          data: {
-            labels: [
-              "Seller Intent",
-              "Buyer Intent",
-              "Lessee Intent",
-              "Lessor Intent",
-              "Risk",
-              "Contextual",
-            ],
-            datasets: [
-              {
-                label: "Total Scores",
-                data: [11, 3, 11, 8, 19, 25],
-                borderColor: "rgba(102, 126, 234, 1)",
-                backgroundColor: "rgba(102, 126, 234, 0.2)",
-                pointBackgroundColor: "rgba(102, 126, 234, 1)",
-                pointBorderColor: "#fff",
-                pointHoverBackgroundColor: "#fff",
-                pointHoverBorderColor: "rgba(102, 126, 234, 1)",
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              r: {
-                beginAtZero: true,
-                max: 30,
-              },
-            },
-          },
-        });
-      }
-
+      // Create source chart (keeping the doughnut chart for source analysis)
       function createSourceChart() {
         const ctx = document.getElementById("sourceChart").getContext("2d");
         new Chart(ctx, {
@@ -694,9 +836,15 @@
 
       // Initialize everything
       document.addEventListener("DOMContentLoaded", function () {
-        createCategoryChart();
         createSourceChart();
         populateSignals();
+
+        // Animate the bullet charts on load
+        setTimeout(() => {
+          document.querySelectorAll(".bullet-value").forEach((bar) => {
+            bar.style.transition = "width 1.5s ease-in-out";
+          });
+        }, 100);
       });
     </script>
   </body>
